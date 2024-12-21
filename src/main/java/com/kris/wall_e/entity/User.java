@@ -7,6 +7,9 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "users")
 public class User {
 
@@ -27,37 +30,4 @@ public class User {
     @Column(nullable = false)
     private String name;
 
-    public User() {
-    }
-
-    public User(Long id, String email, String password, String name) {
-        this.id = id;
-        this.email = email;
-        this.password = password;
-        this.name = name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getName() {
-        return name;
-    }
 }
