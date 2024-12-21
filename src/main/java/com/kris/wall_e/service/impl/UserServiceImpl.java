@@ -3,10 +3,13 @@ package com.kris.wall_e.service.impl;
 import com.kris.wall_e.dto.UserDto;
 import com.kris.wall_e.dto.UserResponseDto;
 import com.kris.wall_e.entity.User;
+import com.kris.wall_e.exception.UserAlreadyExistsException;
 import com.kris.wall_e.repository.UserRepository;
 import com.kris.wall_e.service.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -22,6 +25,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto createUser(UserDto userDto) {
+
+        Optional<User> isExistingUser = Optional.ofNullable(repository.findByEmail(userDto.email()));
+        if(isExistingUser.isPresent()){
+            throw new UserAlreadyExistsException("User with email '" + userDto.email() + "' already exists.");
+        }
+
         User user = new User();
 
         user.setEmail(userDto.email());
