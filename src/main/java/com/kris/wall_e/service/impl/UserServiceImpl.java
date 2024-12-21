@@ -7,24 +7,18 @@ import com.kris.wall_e.exception.UserAlreadyExistsException;
 import com.kris.wall_e.exception.UserNotFoundException;
 import com.kris.wall_e.repository.UserRepository;
 import com.kris.wall_e.service.UserService;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository repository;
-
     private final PasswordEncoder passwordEncoder;
-
-    public UserServiceImpl(UserRepository repository, PasswordEncoder passwordEncoder) {
-        this.repository = repository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Override
     public UserResponseDto createUser(UserDto userDto) {
