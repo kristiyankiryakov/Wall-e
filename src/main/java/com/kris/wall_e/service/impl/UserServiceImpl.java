@@ -16,11 +16,11 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository repository;
 
-    private final PasswordEncoder passwordEncoder;
+//    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository repository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository repository) {
         this.repository = repository;
-        this.passwordEncoder = passwordEncoder;
+//        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -34,7 +34,8 @@ public class UserServiceImpl implements UserService {
         User user = new User();
 
         user.setEmail(userDto.email());
-        user.setPassword(passwordEncoder.encode(userDto.password()));
+        user.setPassword("asd");
+//        user.setPassword(passwordEncoder.encode(userDto.password()));
         user.setName(userDto.name());
 
         repository.save(user);

@@ -10,7 +10,6 @@ public record UserDto(
 
         @NotBlank(message = "Password is required")
         String password,
-        `
         @NotBlank(message = "Name is required")
         String name
 ) {

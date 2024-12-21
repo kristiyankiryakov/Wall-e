@@ -20,6 +20,11 @@ public class UserController {
         this.userService = userService;
     }
 
+    @GetMapping("")
+    public String userEndpoint() {
+        return "Hello, User!";
+    }
+
     @PostMapping
     public ResponseEntity<UserResponseDto> createUser(@Validated @RequestBody UserDto userDto) {
 
