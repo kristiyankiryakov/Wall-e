@@ -1,7 +1,9 @@
 package com.kris.wall_e.controller;
 
+import com.kris.wall_e.exception.BaseException;
 import com.kris.wall_e.exception.ErrorResponse;
 import com.kris.wall_e.exception.UserAlreadyExistsException;
+import com.kris.wall_e.exception.WalletForUserAlreadyExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -33,16 +35,39 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
-
+    @ExceptionHandler(BaseException.class)
+    public ResponseEntity<ErrorResponse> handleBaseException(BaseException ex) {
+        // Common handling logic for all exceptions extending BaseException
         ErrorResponse errorResponse = new ErrorResponse(
-                409, // HTTP 409 Conflict
+                404,
                 ex.getMessage(),
                 LocalDateTime.now()
         );
-        return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.CONFLICT);
+
+        return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.BAD_REQUEST);
     }
+
+//    @ExceptionHandler(UserAlreadyExistsException.class)
+//    public ResponseEntity<ErrorResponse> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
+//
+//        ErrorResponse errorResponse = new ErrorResponse(
+//                409, // HTTP 409 Conflict
+//                ex.getMessage(),
+//                LocalDateTime.now()
+//        );
+//        return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.CONFLICT);
+//    }
+//
+//    @ExceptionHandler(WalletForUserAlreadyExistsException.class)
+//    public ResponseEntity<ErrorResponse> handleWalletForUserAlreadyExistsException(WalletForUserAlreadyExistsException ex) {
+//
+//        ErrorResponse errorResponse = new ErrorResponse(
+//                409, // HTTP 409 Conflict
+//                ex.getMessage(),
+//                LocalDateTime.now()
+//        );
+//        return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.CONFLICT);
+//    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
