@@ -3,16 +3,18 @@ package com.kris.wall_e.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "wallets")
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Wallet {
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class Wallet extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

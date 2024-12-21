@@ -7,7 +7,6 @@ import com.kris.wall_e.repository.WalletRepository;
 import com.kris.wall_e.service.UserService;
 import com.kris.wall_e.service.WalletService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service

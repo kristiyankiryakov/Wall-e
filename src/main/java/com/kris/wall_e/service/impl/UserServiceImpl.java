@@ -5,6 +5,7 @@ import com.kris.wall_e.dto.UserResponseDto;
 import com.kris.wall_e.entity.User;
 import com.kris.wall_e.exception.UserAlreadyExistsException;
 import com.kris.wall_e.exception.UserNotFoundException;
+import com.kris.wall_e.mapper.UserMapper;
 import com.kris.wall_e.repository.UserRepository;
 import com.kris.wall_e.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository repository;
+    private final UserMapper mapper;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -28,27 +30,22 @@ public class UserServiceImpl implements UserService {
             throw new UserAlreadyExistsException("User with email '" + userDto.email() + "' already exists.");
         }
 
-        User user = new User();
-
-        user.setEmail(userDto.email());
-        user.setPassword(userDto.password());
-        user.setPassword(passwordEncoder.encode(userDto.password()));
-        user.setName(userDto.name());
+        User user = User.builder()
+                .name(userDto.name())
+                .email(userDto.email())
+                .password(passwordEncoder.encode(userDto.password()))
+                .build();
 
         repository.save(user);
 
-        return new UserResponseDto(
-                user.getId(),
-                user.getEmail(),
-                userDto.name()
-        );
+        return mapper.fromUser(user);
     }
 
     public UserResponseDto getUser(Long id) {
         User user = repository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("user with id: %s does not exists.".formatted(id)));
 
-        return new UserResponseDto(user.getId(), user.getEmail(), user.getName());
+        return mapper.fromUser(user);
     }
 
 }
