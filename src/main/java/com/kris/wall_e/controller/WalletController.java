@@ -1,11 +1,10 @@
 package com.kris.wall_e.controller;
 
-import com.kris.wall_e.dto.CreateWalletRequest;
+import com.kris.wall_e.dto.TransactionRequest;
+import com.kris.wall_e.dto.TransactionResponse;
 import com.kris.wall_e.dto.WalletResponse;
-import com.kris.wall_e.entity.Wallet;
 import com.kris.wall_e.service.WalletService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -27,6 +26,11 @@ public class WalletController {
     @GetMapping("/{userId}")
     public ResponseEntity<WalletResponse> viewBalance(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(walletService.getWallet(userId));
+    }
+
+    @PostMapping("/deposit/{userId}")
+    public ResponseEntity<TransactionResponse> deposit(@PathVariable("userId") Long userId, @Validated @RequestBody TransactionRequest request) {
+        return ResponseEntity.ok(walletService.deposit(userId, request));
     }
 
 }

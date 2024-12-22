@@ -1,7 +1,10 @@
 package com.kris.wall_e.service.impl;
 
+import com.kris.wall_e.dto.TransactionRequest;
+import com.kris.wall_e.dto.TransactionResponse;
 import com.kris.wall_e.dto.UserResponseDto;
 import com.kris.wall_e.dto.WalletResponse;
+import com.kris.wall_e.entity.TransactionType;
 import com.kris.wall_e.entity.User;
 import com.kris.wall_e.entity.Wallet;
 import com.kris.wall_e.exception.NotFoundException;
@@ -12,6 +15,9 @@ import com.kris.wall_e.service.UserService;
 import com.kris.wall_e.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +64,29 @@ public class WalletServiceImpl implements WalletService {
                 wallet.getBalance()
         );
 
+    }
+
+    @Override
+    @Transactional
+    public TransactionResponse deposit(Long userId, TransactionRequest request) {
+        BigDecimal amount = request.amount();
+
+        Wallet wallet = repository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("user with id: %s doesn't have a wallet.".formatted(userId)));
+
+        BigDecimal previousBalance = wallet.getBalance();
+
+        wallet.setBalance(wallet.getBalance().add(amount));
+        wallet = repository.save(wallet);
+
+        return new TransactionResponse(
+                wallet.getId(),
+                userId,
+                previousBalance,
+                wallet.getBalance(),
+                TransactionType.DEPOSIT,
+                amount
+        );
     }
 
 
