@@ -7,6 +7,7 @@ import com.kris.wall_e.dto.WalletResponse;
 import com.kris.wall_e.entity.TransactionType;
 import com.kris.wall_e.entity.User;
 import com.kris.wall_e.entity.Wallet;
+import com.kris.wall_e.exception.InsufficientFundsException;
 import com.kris.wall_e.exception.NotFoundException;
 import com.kris.wall_e.exception.WalletForUserAlreadyExistsException;
 import com.kris.wall_e.mapper.UserMapper;
@@ -57,7 +58,7 @@ public class WalletServiceImpl implements WalletService {
         UserResponseDto userResponseDto = userMapper.fromUser(user);
 
         Wallet wallet = repository.findByUserId(userId)
-                .orElseThrow(() -> new NotFoundException("user with id: %s doesn't have a wallet.".formatted(userId)));
+                .orElseThrow(() -> new NotFoundException("Wallet not found for user: " + userId));
 
         return new WalletResponse(
                 userResponseDto,
@@ -72,7 +73,7 @@ public class WalletServiceImpl implements WalletService {
         BigDecimal amount = request.amount();
 
         Wallet wallet = repository.findByUserId(userId)
-                .orElseThrow(() -> new NotFoundException("user with id: %s doesn't have a wallet.".formatted(userId)));
+                .orElseThrow(() -> new NotFoundException("Wallet not found for user: " + userId));
 
         BigDecimal previousBalance = wallet.getBalance();
 
@@ -89,5 +90,34 @@ public class WalletServiceImpl implements WalletService {
         );
     }
 
+    @Override
+    @Transactional
+    public TransactionResponse withdraw(Long userId, TransactionRequest request) {
+        BigDecimal amount = request.amount();
+
+        Wallet wallet = repository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Wallet not found for user: " + userId));
+
+        BigDecimal previousBalance = wallet.getBalance();
+
+
+        if (wallet.getBalance().compareTo(amount) < 0) {
+            throw new InsufficientFundsException(
+                    "Insufficient funds. Current balance: %s , Withdrawal amount : %s".formatted(wallet.getBalance(), amount)
+            );
+        }
+
+        wallet.setBalance(wallet.getBalance().subtract(amount));
+        repository.save(wallet);
+
+        return new TransactionResponse(
+                wallet.getId(),
+                userId,
+                previousBalance,
+                wallet.getBalance(),
+                TransactionType.WITHDRAWAL,
+                amount
+        );
+    }
 
 }

@@ -11,4 +11,6 @@ public interface WalletService {
     public WalletResponse getWallet(Long userId);
 
     public TransactionResponse deposit(Long userId, TransactionRequest transactionRequest);
+
+    public TransactionResponse withdraw(Long userId, TransactionRequest transactionRequest);
 }

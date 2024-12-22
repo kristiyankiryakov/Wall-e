@@ -33,4 +33,9 @@ public class WalletController {
         return ResponseEntity.ok(walletService.deposit(userId, request));
     }
 
+    @PostMapping("/withdraw/{userId}")
+    public ResponseEntity<TransactionResponse> withdraw(@PathVariable("userId") Long userId, @Validated @RequestBody TransactionRequest request) {
+        return ResponseEntity.ok(walletService.withdraw(userId, request));
+    }
+
 }
