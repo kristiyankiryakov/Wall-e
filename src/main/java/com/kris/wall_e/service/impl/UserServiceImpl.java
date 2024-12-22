@@ -4,7 +4,7 @@ import com.kris.wall_e.dto.UserDto;
 import com.kris.wall_e.dto.UserResponseDto;
 import com.kris.wall_e.entity.User;
 import com.kris.wall_e.exception.UserAlreadyExistsException;
-import com.kris.wall_e.exception.UserNotFoundException;
+import com.kris.wall_e.exception.NotFoundException;
 import com.kris.wall_e.mapper.UserMapper;
 import com.kris.wall_e.repository.UserRepository;
 import com.kris.wall_e.service.UserService;
@@ -41,11 +41,9 @@ public class UserServiceImpl implements UserService {
         return mapper.fromUser(user);
     }
 
-    public UserResponseDto getUser(Long id) {
-        User user = repository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("user with id: %s does not exists.".formatted(id)));
-
-        return mapper.fromUser(user);
+    public User getUser(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("user with id: %s does not exists.".formatted(id)));
     }
 
 }

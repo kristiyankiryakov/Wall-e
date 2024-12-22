@@ -1,6 +1,7 @@
 package com.kris.wall_e.controller;
 
 import com.kris.wall_e.dto.CreateWalletRequest;
+import com.kris.wall_e.dto.WalletResponse;
 import com.kris.wall_e.entity.Wallet;
 import com.kris.wall_e.service.WalletService;
 import lombok.RequiredArgsConstructor;
@@ -17,10 +18,15 @@ public class WalletController {
 
     private final WalletService walletService;
 
-    @PostMapping
-    public ResponseEntity<Wallet> createWallet(@Validated @RequestBody CreateWalletRequest request) {
-        Wallet wallet = walletService.createWallet(request);
+    @PostMapping("/{userId}")
+    public ResponseEntity<WalletResponse> createWallet(@PathVariable("userId") Long userId) {
+        WalletResponse wallet = walletService.createWallet(userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(wallet);
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<WalletResponse> viewBalance(@PathVariable("userId") Long userId) {
+        return ResponseEntity.ok(walletService.getWallet(userId));
     }
 
 }

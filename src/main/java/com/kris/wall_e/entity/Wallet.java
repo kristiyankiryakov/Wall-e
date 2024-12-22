@@ -21,9 +21,11 @@ public class Wallet extends BaseEntity {
     private Long id;
 
     @Column(nullable = false)
-    private Long userId;
-
-    @Column(nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
+
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    private User user;
+
 
 }

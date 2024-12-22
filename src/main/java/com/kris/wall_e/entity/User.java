@@ -32,5 +32,6 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String name;
 
-
+    @OneToOne(mappedBy = "user")
+    private Wallet wallet;
 }
