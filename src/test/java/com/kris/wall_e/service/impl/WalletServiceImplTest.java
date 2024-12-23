@@ -8,6 +8,7 @@ import com.kris.wall_e.entity.TransactionType;
 import com.kris.wall_e.entity.User;
 import com.kris.wall_e.entity.Wallet;
 import com.kris.wall_e.exception.AlreadyExistsException;
+import com.kris.wall_e.exception.InsufficientFundsException;
 import com.kris.wall_e.exception.NotFoundException;
 import com.kris.wall_e.mapper.UserMapper;
 import com.kris.wall_e.repository.WalletRepository;
@@ -199,6 +200,90 @@ class WalletServiceImplTest {
         });
 
         assertEquals("Wallet not found for user: " + userId, exception.getMessage());
+
+        verify(repository, times(1)).findByUserId(userId);
+        verify(repository, never()).save(any(Wallet.class));
+    }
+
+    @Test
+    @Transactional
+    void withdraw_ShouldReturnTransactionResponse_WhenSufficientFunds() {
+
+        Long userId = 1L;
+        User mockUser = User.builder().id(1L).name("pesho").email("pesho@test.com").build();
+
+        BigDecimal withdrawalAmount = BigDecimal.valueOf(50.0);
+        BigDecimal initialBalance = BigDecimal.valueOf(100.0);
+        BigDecimal finalBalance = initialBalance.subtract(withdrawalAmount);
+
+        Wallet mockWallet = new Wallet();
+        mockWallet.setId(1L);
+        mockWallet.setUser(mockUser);
+        mockWallet.setBalance(initialBalance);
+
+        when(repository.findByUserId(userId)).thenReturn(Optional.of(mockWallet));
+        when(repository.save(any(Wallet.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TransactionRequest request = new TransactionRequest(withdrawalAmount);
+
+        TransactionResponse response = walletService.withdraw(userId, request);
+
+        assertNotNull(response);
+        assertEquals(1L, response.walletId());
+        assertEquals(userId, response.userId());
+        assertEquals(initialBalance, response.previousBalance());
+        assertEquals(finalBalance, response.currentBalance());
+        assertEquals(TransactionType.WITHDRAWAL, response.transactionType());
+        assertEquals(withdrawalAmount, response.transactionAmount());
+
+        verify(repository, times(1)).findByUserId(userId);
+        verify(repository, times(1)).save(any(Wallet.class));
+    }
+
+    @Test
+    @Transactional
+    void withdraw_ShouldThrowNotFoundException_WhenWalletDoesNotExist() {
+        Long userId = 1L;
+        BigDecimal withdrawalAmount = BigDecimal.valueOf(50.0);
+
+        when(repository.findByUserId(userId)).thenReturn(Optional.empty());
+
+        TransactionRequest request = new TransactionRequest(withdrawalAmount);
+
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            walletService.withdraw(userId, request);
+        });
+
+        assertEquals("Wallet not found for user: " + userId, exception.getMessage());
+
+        verify(repository, times(1)).findByUserId(userId);
+        verify(repository, never()).save(any(Wallet.class));
+    }
+
+    @Test
+    @Transactional
+    void withdraw_ShouldThrowInsufficientFundsException_WhenInsufficientFunds() {
+
+        Long userId = 1L;
+        User mockUser = User.builder().id(1L).name("pesho").email("pesho@test.com").build();
+
+        BigDecimal withdrawalAmount = BigDecimal.valueOf(150.0);
+        BigDecimal initialBalance = BigDecimal.valueOf(100.0);
+
+        Wallet mockWallet = new Wallet();
+        mockWallet.setId(1L);
+        mockWallet.setUser(mockUser);
+        mockWallet.setBalance(initialBalance);
+
+        when(repository.findByUserId(userId)).thenReturn(Optional.of(mockWallet));
+
+        TransactionRequest request = new TransactionRequest(withdrawalAmount);
+
+        InsufficientFundsException exception = assertThrows(InsufficientFundsException.class, () -> {
+            walletService.withdraw(userId, request);
+        });
+
+        assertEquals("Insufficient funds. Current balance: 100.0 , Withdrawal amount : 150.0", exception.getMessage());
 
         verify(repository, times(1)).findByUserId(userId);
         verify(repository, never()).save(any(Wallet.class));
