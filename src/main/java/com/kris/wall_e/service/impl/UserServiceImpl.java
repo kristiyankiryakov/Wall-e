@@ -3,7 +3,7 @@ package com.kris.wall_e.service.impl;
 import com.kris.wall_e.dto.UserDto;
 import com.kris.wall_e.dto.UserResponseDto;
 import com.kris.wall_e.entity.User;
-import com.kris.wall_e.exception.UserAlreadyExistsException;
+import com.kris.wall_e.exception.AlreadyExistsException;
 import com.kris.wall_e.exception.NotFoundException;
 import com.kris.wall_e.mapper.UserMapper;
 import com.kris.wall_e.repository.UserRepository;
@@ -27,7 +27,7 @@ public class UserServiceImpl implements UserService {
 
         Optional<User> isExistingUser = Optional.ofNullable(repository.findByEmail(userDto.email()));
         if (isExistingUser.isPresent()) {
-            throw new UserAlreadyExistsException("User with email '" + userDto.email() + "' already exists.");
+            throw new AlreadyExistsException("User with email '" + userDto.email() + "' already exists.");
         }
 
         User user = User.builder()

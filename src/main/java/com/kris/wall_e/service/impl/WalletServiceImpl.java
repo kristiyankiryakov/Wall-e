@@ -7,9 +7,9 @@ import com.kris.wall_e.dto.WalletResponse;
 import com.kris.wall_e.entity.TransactionType;
 import com.kris.wall_e.entity.User;
 import com.kris.wall_e.entity.Wallet;
+import com.kris.wall_e.exception.AlreadyExistsException;
 import com.kris.wall_e.exception.InsufficientFundsException;
 import com.kris.wall_e.exception.NotFoundException;
-import com.kris.wall_e.exception.WalletForUserAlreadyExistsException;
 import com.kris.wall_e.mapper.UserMapper;
 import com.kris.wall_e.repository.WalletRepository;
 import com.kris.wall_e.service.UserService;
@@ -36,7 +36,7 @@ public class WalletServiceImpl implements WalletService {
 
         //Check if wallet already exists for user
         if (repository.existsByUserId(userId)) {
-            throw new WalletForUserAlreadyExistsException("user with id %s already has a wallet.".formatted(userId));
+            throw new AlreadyExistsException("user with id %s already has a wallet.".formatted(userId));
         }
 
         Wallet wallet = new Wallet();

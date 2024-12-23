@@ -4,7 +4,7 @@ import com.kris.wall_e.dto.UserDto;
 import com.kris.wall_e.dto.UserResponseDto;
 import com.kris.wall_e.entity.User;
 import com.kris.wall_e.exception.NotFoundException;
-import com.kris.wall_e.exception.UserAlreadyExistsException;
+import com.kris.wall_e.exception.AlreadyExistsException;
 import com.kris.wall_e.mapper.UserMapper;
 import com.kris.wall_e.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -67,7 +67,7 @@ class UserServiceImplTest {
         UserDto userDto = new UserDto("John Doe", "johndoe@example.com", "password");
         when(repository.findByEmail(userDto.email())).thenReturn(new User());
 
-        assertThrows(UserAlreadyExistsException.class, () -> service.createUser(userDto));
+        assertThrows(AlreadyExistsException.class, () -> service.createUser(userDto));
     }
 
     @Test
