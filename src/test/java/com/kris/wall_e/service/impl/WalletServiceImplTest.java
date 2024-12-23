@@ -10,6 +10,7 @@ import com.kris.wall_e.entity.Wallet;
 import com.kris.wall_e.exception.AlreadyExistsException;
 import com.kris.wall_e.exception.InsufficientFundsException;
 import com.kris.wall_e.exception.NotFoundException;
+import com.kris.wall_e.exception.UnauthorizedOperationException;
 import com.kris.wall_e.mapper.UserMapper;
 import com.kris.wall_e.repository.WalletRepository;
 import com.kris.wall_e.service.UserService;
@@ -148,6 +149,21 @@ class WalletServiceImplTest {
         verify(repository, times(1)).findByUserId(userId);
     }
 
+    @Test
+    public void getWalletUnauthorized_ShouldThrowUnauthorizedOperationException() {
+        Long userId = 1L;
+        Long walletUserId = 2L; // A different user id than the one requesting
+        User user = User.builder().id(userId).build();
+        User wallOwner = User.builder().id(walletUserId).build();
+
+        Wallet wallet = new Wallet(1L, BigDecimal.valueOf(100.00), wallOwner);
+
+        when(userService.getUser(userId)).thenReturn(user);
+        when(repository.findByUserId(userId)).thenReturn(Optional.of(wallet));
+
+        // Should throw UnauthorizedOperationException because the wallet doesn't belong to the user
+        assertThrows(UnauthorizedOperationException.class, () -> walletService.getWallet(userId));
+    }
 
     @Test
     @Transactional
@@ -203,6 +219,23 @@ class WalletServiceImplTest {
 
         verify(repository, times(1)).findByUserId(userId);
         verify(repository, never()).save(any(Wallet.class));
+    }
+
+    @Test
+    public void depositUnauthorized_ShouldThrowUnauthorizedOperationException() {
+        Long userId = 1L;
+        Long walletUserId = 2L; // A different user id than the one requesting
+        User user = User.builder().id(userId).build();
+
+        User walletOwner = User.builder().id(walletUserId).build();
+        Wallet wallet = new Wallet(1L, BigDecimal.valueOf(100.00), walletOwner);
+
+        TransactionRequest request = new TransactionRequest(BigDecimal.valueOf(50));
+
+        when(repository.findByUserId(userId)).thenReturn(Optional.of(wallet));
+
+        // Should throw UnauthorizedOperationException because the wallet doesn't belong to the user
+        assertThrows(UnauthorizedOperationException.class, () -> walletService.deposit(userId, request));
     }
 
     @Test
@@ -287,6 +320,23 @@ class WalletServiceImplTest {
 
         verify(repository, times(1)).findByUserId(userId);
         verify(repository, never()).save(any(Wallet.class));
+    }
+
+    @Test
+    public void withdrawUnauthorized_ShouldThrowUnauthorizedOperationException() {
+        Long userId = 1L;
+        Long walletUserId = 2L; // A different user id than the one requesting
+        User user = User.builder().id(userId).build();
+
+        User walletOwner = User.builder().id(walletUserId).build();
+        Wallet wallet = new Wallet(1L, BigDecimal.valueOf(100.00), walletOwner);
+
+        TransactionRequest request = new TransactionRequest(BigDecimal.valueOf(50));
+
+        when(repository.findByUserId(userId)).thenReturn(Optional.of(wallet));
+
+        // Should throw UnauthorizedOperationException because the wallet doesn't belong to the user
+        assertThrows(UnauthorizedOperationException.class, () -> walletService.withdraw(userId, request));
     }
 
 }

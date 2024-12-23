@@ -7,6 +7,7 @@ import com.kris.wall_e.exception.NotFoundException;
 import com.kris.wall_e.exception.AlreadyExistsException;
 import com.kris.wall_e.mapper.UserMapper;
 import com.kris.wall_e.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

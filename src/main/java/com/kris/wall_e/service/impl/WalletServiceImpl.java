@@ -10,6 +10,7 @@ import com.kris.wall_e.entity.Wallet;
 import com.kris.wall_e.exception.AlreadyExistsException;
 import com.kris.wall_e.exception.InsufficientFundsException;
 import com.kris.wall_e.exception.NotFoundException;
+import com.kris.wall_e.exception.UnauthorizedOperationException;
 import com.kris.wall_e.mapper.UserMapper;
 import com.kris.wall_e.repository.WalletRepository;
 import com.kris.wall_e.service.UserService;
@@ -60,6 +61,10 @@ public class WalletServiceImpl implements WalletService {
         Wallet wallet = repository.findByUserId(userId)
                 .orElseThrow(() -> new NotFoundException("Wallet not found for user: " + userId));
 
+        if (!wallet.getUser().getId().equals(userId)) {
+            throw new UnauthorizedOperationException("User is not authorized view this wallet.");
+        }
+
         return new WalletResponse(
                 userResponseDto,
                 wallet.getBalance()
@@ -74,6 +79,10 @@ public class WalletServiceImpl implements WalletService {
 
         Wallet wallet = repository.findByUserId(userId)
                 .orElseThrow(() -> new NotFoundException("Wallet not found for user: " + userId));
+
+        if (!wallet.getUser().getId().equals(userId)) {
+            throw new UnauthorizedOperationException("User is not authorized to deposit into this wallet.");
+        }
 
         BigDecimal previousBalance = wallet.getBalance();
 
@@ -97,6 +106,10 @@ public class WalletServiceImpl implements WalletService {
 
         Wallet wallet = repository.findByUserId(userId)
                 .orElseThrow(() -> new NotFoundException("Wallet not found for user: " + userId));
+
+        if (!wallet.getUser().getId().equals(userId)) {
+            throw new UnauthorizedOperationException("User is not authorized to withdraw from this wallet.");
+        }
 
         BigDecimal previousBalance = wallet.getBalance();
 
