@@ -84,6 +84,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.0.0-M5</version>
 				<configuration>
+					<argLine>-Xshare:off</argLine>
 					<forkCount>1C</forkCount>
 					<reuseForks>true</reuseForks>
 				</configuration>
