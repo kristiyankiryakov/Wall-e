@@ -5,8 +5,8 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.1</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<version>3.2.1</version>
+		<relativePath/>
 	</parent>
 	<groupId>com.kris</groupId>
 	<artifactId>wall-e</artifactId>
@@ -74,7 +74,23 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>5.7.0</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>net.bytebuddy</groupId>
+			<artifactId>byte-buddy-agent</artifactId>
+			<version>1.14.11</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
+
 
 	<build>
 		<plugins>
@@ -84,13 +100,9 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.0.0-M5</version>
 				<configuration>
-					<argLine>-Xshare:off</argLine>
-					<properties>
-						<property>
-							<name>junit.jupiter.extensions.autodetection.enabled</name>
-							<value>true</value>
-						</property>
-					</properties>
+					<argLine>
+						-javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/1.14.11/byte-buddy-agent-1.14.11.jar
+					</argLine>
 				</configuration>
 			</plugin>
 
