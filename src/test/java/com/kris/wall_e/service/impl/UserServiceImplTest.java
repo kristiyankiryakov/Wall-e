@@ -3,6 +3,8 @@ package com.kris.wall_e.service.impl;
 import com.kris.wall_e.dto.UserDto;
 import com.kris.wall_e.dto.UserResponseDto;
 import com.kris.wall_e.entity.User;
+import com.kris.wall_e.exception.NotFoundException;
+import com.kris.wall_e.exception.UserAlreadyExistsException;
 import com.kris.wall_e.mapper.UserMapper;
 import com.kris.wall_e.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -12,8 +14,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -56,5 +59,35 @@ class UserServiceImplTest {
 
         verify(repository).save(any(User.class));
         verify(passwordEncoder).encode(userDto.password());
+    }
+
+    @Test
+    void createUserShouldThrowExceptionWhen_UserAlreadyExists() {
+
+        UserDto userDto = new UserDto("John Doe", "johndoe@example.com", "password");
+        when(repository.findByEmail(userDto.email())).thenReturn(new User());
+
+        assertThrows(UserAlreadyExistsException.class, () -> service.createUser(userDto));
+    }
+
+    @Test
+    void getUserShouldReturnUserWhen_Found() {
+
+        User user = User.builder().id(1L).name("John Doe").email("johndoe@example.com").build();
+        when(repository.findById(1L)).thenReturn(Optional.of(user));
+
+        User result = service.getUser(1L);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals("John Doe", result.getName());
+    }
+
+    @Test
+    void getUserShouldThrowNotFoundExceptionWhen_UserDoesNotExist() {
+
+        when(repository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> service.getUser(1L));
     }
 }
