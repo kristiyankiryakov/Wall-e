@@ -35,7 +35,6 @@ public class WalletServiceImpl implements WalletService {
         //Ensures we have the user
         User user = userService.getUser(userId);
 
-        //Check if wallet already exists for user
         if (repository.existsByUserId(userId)) {
             throw new AlreadyExistsException("user with id %s already has a wallet.".formatted(userId));
         }
@@ -58,12 +57,9 @@ public class WalletServiceImpl implements WalletService {
         User user = userService.getUser(userId);
         UserResponseDto userResponseDto = userMapper.fromUser(user);
 
-        Wallet wallet = repository.findByUserId(userId)
-                .orElseThrow(() -> new NotFoundException("Wallet not found for user: " + userId));
+        Wallet wallet = getWalletByUserId(userId);
 
-        if (!wallet.getUser().getId().equals(userId)) {
-            throw new UnauthorizedOperationException("User is not authorized view this wallet.");
-        }
+        explicitOwnershipCheck(wallet, userId);
 
         return new WalletResponse(
                 userResponseDto,
@@ -77,12 +73,9 @@ public class WalletServiceImpl implements WalletService {
     public TransactionResponse deposit(Long userId, TransactionRequest request) {
         BigDecimal amount = request.amount();
 
-        Wallet wallet = repository.findByUserId(userId)
-                .orElseThrow(() -> new NotFoundException("Wallet not found for user: " + userId));
+        Wallet wallet = getWalletByUserId(userId);
 
-        if (!wallet.getUser().getId().equals(userId)) {
-            throw new UnauthorizedOperationException("User is not authorized to deposit into this wallet.");
-        }
+        explicitOwnershipCheck(wallet, userId);
 
         BigDecimal previousBalance = wallet.getBalance();
 
@@ -104,15 +97,11 @@ public class WalletServiceImpl implements WalletService {
     public TransactionResponse withdraw(Long userId, TransactionRequest request) {
         BigDecimal amount = request.amount();
 
-        Wallet wallet = repository.findByUserId(userId)
-                .orElseThrow(() -> new NotFoundException("Wallet not found for user: " + userId));
+        Wallet wallet = getWalletByUserId(userId);
 
-        if (!wallet.getUser().getId().equals(userId)) {
-            throw new UnauthorizedOperationException("User is not authorized to withdraw from this wallet.");
-        }
+        explicitOwnershipCheck(wallet, userId);
 
         BigDecimal previousBalance = wallet.getBalance();
-
 
         if (wallet.getBalance().compareTo(amount) < 0) {
             throw new InsufficientFundsException(
@@ -131,6 +120,32 @@ public class WalletServiceImpl implements WalletService {
                 TransactionType.WITHDRAWAL,
                 amount
         );
+    }
+
+    /**
+     * Performs an explicit ownership check to ensure that the wallet belongs to the user
+     * - Preventing:
+     * - Malicious manipulation of user IDs in API requests.
+     * - Database inconsistencies or corruption where wallet-user relationships might be mismatched.
+     * - Ensuring:
+     * - Mitigating risks of data leakage where one user might access another's wallet information.
+     * - Protecting against accidental or intentional exploitation of system vulnerabilities where
+     * database relations could be tampered with or misaligned.
+     *
+     * @param wallet The wallet object to check ownership for.
+     * @param userId The ID of the user claiming ownership of the wallet.
+     * @throws UnauthorizedOperationException If the wallet does not belong to the specified user,
+     *                                        indicating an attempt to access unauthorized resources.
+     */
+    private void explicitOwnershipCheck(Wallet wallet, Long userId) throws UnauthorizedOperationException {
+        if (!wallet.getUser().getId().equals(userId)) {
+            throw new UnauthorizedOperationException("Access denied - Not Authorised.");
+        }
+    }
+
+    private Wallet getWalletByUserId(Long userId) throws NotFoundException {
+        return repository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Wallet not found for user: " + userId));
     }
 
 }

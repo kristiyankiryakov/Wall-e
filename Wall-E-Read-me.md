@@ -4,6 +4,11 @@
 
 A Spring Boot REST API that enables user management and wallet operations including creating users, managing wallets, and handling deposits/withdrawals.
 
+### API Design Notes
+
+- **User-Wallet Relationship**: There's a one-to-one relationship between users and wallets. Each user has exactly one wallet, and each wallet is associated with only one user. This relationship is implicit in API endpoints where operations are performed using the `userId`.
+
+
 ## Technologies Used
 
 - Java 17
