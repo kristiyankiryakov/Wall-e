@@ -1,6 +1,6 @@
 # Wallet API
 
-![img.png](img.png)
+![img_1.png](img_1.png)
 
 A Spring Boot REST API that enables user management and wallet operations including creating users, managing wallets, and handling deposits/withdrawals.
 
