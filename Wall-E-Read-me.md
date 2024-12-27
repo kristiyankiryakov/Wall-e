@@ -206,3 +206,108 @@ curl -X POST http://localhost:8080/api/users \
   -d '{"name": "John Doe", "email": "john@example.com", "password": "john123"}'
 
 ```
+
+[Previous sections remain the same until Contributing...]
+
+## CI/CD Pipeline
+
+This project uses GitHub Actions for continuous integration and deployment. The pipeline is triggered on:
+- Push to the `main` branch
+- Pull requests to the `main` branch
+
+### Pipeline Overview
+
+The workflow file is located at `.github/workflows/ci-cd.yml` and consists of the following steps:
+
+#### Build Job
+
+The build job runs on Ubuntu latest and sets up a PostgreSQL service container for integration tests.
+
+##### Database Container Configuration
+- Image: postgres:latest
+- Credentials:
+  - Username: postgres
+  - Password: postgres
+  - Database: postgres
+- Port: 5432
+- Health checks configured for reliability
+
+##### Steps
+
+1. **Checkout Code**
+  - Uses: `actions/checkout@v3`
+  - Fetches the repository code
+
+2. **Setup JDK**
+  - Uses: `actions/setup-java@v3`
+  - Configures JDK 17 (Temurin distribution)
+
+3. **Cache Dependencies**
+  - Uses: `actions/cache@v3`
+  - Caches Maven dependencies to speed up builds
+  - Cache key based on pom.xml hash
+
+4. **Build Project**
+  - Runs: `mvn clean install`
+  - Compiles the code and packages the application
+
+5. **Run Tests**
+  - Runs: `mvn test -X`
+  - Executes all tests with detailed logging
+
+### Workflow File
+
+```yaml
+name: Java CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready -U user" --health-timeout=30s --health-start-period=5s --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Cache Maven repository
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven
+
+      - name: Build with Maven
+        run: mvn clean install
+
+      - name: Run tests
+        run: mvn test -X
+```
+
+### Pipeline Status
+
+You can view the status of pipeline runs in the "Actions" tab of the GitHub repository.
