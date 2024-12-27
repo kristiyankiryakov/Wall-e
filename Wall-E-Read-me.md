@@ -83,27 +83,107 @@ The API will be available at `http://localhost:8080`
 
 ### Users
 
-- Create User
-  - POST `/api/users`
-  - Creates a new user account
+#### Create User
+- **POST** `/api/users`
+- Creates a new user account
+- Request Body (`UserDto`):
+  ```json
+  {
+    "name": "string",         // Required
+    "email": "string",        // Required, must be valid email
+    "password": "string"      // Required
+  }
+  ```
+- Response (`UserResponseDto`):
+  ```json
+  {
+    "userId": "number",
+    "name": "string",
+    "email": "string"
+  }
+  ```
 
 ### Wallets
 
-- Create Wallet
-  - POST `/api/wallets/{userId}`
-  - Creates a new wallet for a user
+#### Create Wallet
+- **POST** `/api/wallets/{userId}`
+- Creates a new wallet for a user
+- Path Variables:
+  - `userId`: The ID of the user
+- Response (`WalletResponse`):
+  ```json
+  {
+    "userDetails": {
+      "userId": "number",
+      "name": "string",
+      "email": "string"
+    },
+    "balance": "number"
+  }
+  ```
 
-- Deposit Money
-  - POST `/api/wallets/deposit/{userId}`
-  - Adds funds to a wallet
+#### Deposit Money
+- **PUT** `/api/wallets/deposit/{userId}`
+- Adds funds to a wallet
+- Path Variables:
+  - `userId`: The ID of the user
+- Request Body (`TransactionRequest`):
+  ```json
+  {
+    "amount": "number"    // Required, must be positive
+  }
+  ```
+- Response (`TransactionResponse`):
+  ```json
+  {
+    "walletId": "number",
+    "userId": "number",
+    "previousBalance": "number",
+    "currentBalance": "number",
+    "transactionType": "string",
+    "transactionAmount": "number"
+  }
+  ```
 
-- Withdraw Money
-  - POST `/api/wallets/withdraw/{userId}`
-  - Withdraws funds from a wallet
+#### Withdraw Money
+- **PUT** `/api/wallets/withdraw/{userId}`
+- Withdraws funds from a wallet
+- Path Variables:
+  - `userId`: The ID of the user
+- Request Body (`TransactionRequest`):
+  ```json
+  {
+    "amount": "number"    // Required, must be positive
+  }
+  ```
+- Response (`TransactionResponse`):
+  ```json
+  {
+    "walletId": "number",
+    "userId": "number",
+    "previousBalance": "number",
+    "currentBalance": "number",
+    "transactionType": "string",
+    "transactionAmount": "number"
+  }
+  ```
 
-- View Balance
-  - GET `/api/wallets/{userId}`
-  - Retrieves the current wallet balance
+#### View Balance
+- **GET** `/api/wallets/{userId}`
+- Retrieves the current wallet balance
+- Path Variables:
+  - `userId`: The ID of the user
+- Response (`WalletResponse`):
+  ```json
+  {
+    "userDetails": {
+      "userId": "number",
+      "name": "string",
+      "email": "string"
+    },
+    "balance": "number"
+  }
+  ```
 
 ## Testing
 
