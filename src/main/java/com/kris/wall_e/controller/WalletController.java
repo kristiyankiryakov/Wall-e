@@ -1,5 +1,7 @@
 package com.kris.wall_e.controller;
 
+import com.kris.wall_e.dto.TransactionRequest;
+import com.kris.wall_e.dto.TransactionResponse;
 import com.kris.wall_e.dto.WalletRequest;
 import com.kris.wall_e.dto.WalletResponse;
 import com.kris.wall_e.service.WalletService;
@@ -25,14 +27,14 @@ public class WalletController {
         return ResponseEntity.ok(walletService.viewBalance(walletId));
     }
 
-//    @PutMapping("/deposit/{userId}")
-//    public ResponseEntity<TransactionResponse> deposit(@PathVariable("userId") Long userId, @Validated @RequestBody TransactionRequest request) {
-//        return ResponseEntity.ok(walletService.deposit(userId, request));
-//    }
-//
-//    @PutMapping("/withdraw/{userId}")
-//    public ResponseEntity<TransactionResponse> withdraw(@PathVariable("userId") Long userId, @Validated @RequestBody TransactionRequest request) {
-//        return ResponseEntity.ok(walletService.withdraw(userId, request));
-//    }
+    @PutMapping("/{walletId}/deposit")
+    public ResponseEntity<TransactionResponse> deposit(@PathVariable("walletId") Long walletId, @Valid @RequestBody TransactionRequest request) {
+        return ResponseEntity.ok(walletService.deposit(walletId, request));
+    }
+
+    @PutMapping("/{walletId}/withdraw")
+    public ResponseEntity<TransactionResponse> withdraw(@PathVariable("walletId") Long walletId, @Valid @RequestBody TransactionRequest request) {
+        return ResponseEntity.ok(walletService.withdraw(walletId, request));
+    }
 
 }

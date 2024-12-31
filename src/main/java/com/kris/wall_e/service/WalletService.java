@@ -11,8 +11,8 @@ public interface WalletService {
     public WalletResponse createWallet(WalletRequest request);
 
     public WalletResponse viewBalance(Long walletId);
-//
-//    public TransactionResponse deposit(Long userId, TransactionRequest transactionRequest);
-//
-//    public TransactionResponse withdraw(Long userId, TransactionRequest transactionRequest);
+
+    public TransactionResponse deposit(Long walletId, TransactionRequest transactionRequest);
+
+    public TransactionResponse withdraw(Long walletId, TransactionRequest transactionRequest);
 }

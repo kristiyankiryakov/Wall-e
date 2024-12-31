@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 
 public record TransactionResponse(
         Long walletId,
-        Long userId,
+        String owner,
         BigDecimal previousBalance,
         BigDecimal currentBalance,
         TransactionType transactionType,
