@@ -1,15 +1,15 @@
 package com.kris.wall_e.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "wallets")
+@Table(
+name = "wallets",
+uniqueConstraints = @UniqueConstraint(columnNames = {"name", "user_id"})
+)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -23,9 +23,10 @@ public class Wallet extends BaseEntity {
     @Column(nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    @Column(nullable = false)
+    private String name;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-
 }

@@ -1,13 +1,11 @@
 package com.kris.wall_e.controller;
 
-import com.kris.wall_e.dto.TransactionRequest;
-import com.kris.wall_e.dto.TransactionResponse;
+import com.kris.wall_e.dto.WalletRequest;
 import com.kris.wall_e.dto.WalletResponse;
 import com.kris.wall_e.service.WalletService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,25 +15,24 @@ public class WalletController {
 
     private final WalletService walletService;
 
-    @PostMapping("/{userId}")
-    public ResponseEntity<WalletResponse> createWallet(@PathVariable("userId") Long userId) {
-        WalletResponse wallet = walletService.createWallet(userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(wallet);
+    @PostMapping
+    public ResponseEntity<WalletResponse> createWallet(@Valid @RequestBody WalletRequest request) {
+        return ResponseEntity.ok(walletService.createWallet(request));
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<WalletResponse> viewBalance(@PathVariable("userId") Long userId) {
-        return ResponseEntity.ok(walletService.getWallet(userId));
-    }
+//    @GetMapping("/{walletId}")
+//    public ResponseEntity<WalletResponse> viewBalance(@PathVariable("walletId") Long walletId) {
+//        return ResponseEntity.ok(walletService.getWallet(walletId));
+//    }
 
-    @PutMapping("/deposit/{userId}")
-    public ResponseEntity<TransactionResponse> deposit(@PathVariable("userId") Long userId, @Validated @RequestBody TransactionRequest request) {
-        return ResponseEntity.ok(walletService.deposit(userId, request));
-    }
-
-    @PutMapping("/withdraw/{userId}")
-    public ResponseEntity<TransactionResponse> withdraw(@PathVariable("userId") Long userId, @Validated @RequestBody TransactionRequest request) {
-        return ResponseEntity.ok(walletService.withdraw(userId, request));
-    }
+//    @PutMapping("/deposit/{userId}")
+//    public ResponseEntity<TransactionResponse> deposit(@PathVariable("userId") Long userId, @Validated @RequestBody TransactionRequest request) {
+//        return ResponseEntity.ok(walletService.deposit(userId, request));
+//    }
+//
+//    @PutMapping("/withdraw/{userId}")
+//    public ResponseEntity<TransactionResponse> withdraw(@PathVariable("userId") Long userId, @Validated @RequestBody TransactionRequest request) {
+//        return ResponseEntity.ok(walletService.withdraw(userId, request));
+//    }
 
 }
