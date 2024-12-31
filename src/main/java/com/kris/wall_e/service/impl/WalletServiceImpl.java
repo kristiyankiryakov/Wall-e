@@ -75,8 +75,7 @@ public class WalletServiceImpl implements WalletService {
 
         BigDecimal previousBalance = wallet.getBalance();
 
-        wallet.setBalance(wallet.getBalance().add(amount));
-        wallet = walletRepository.save(wallet);
+        wallet = processDeposit(wallet, amount);
 
         return new TransactionResponse(
                 walletId,
@@ -88,6 +87,11 @@ public class WalletServiceImpl implements WalletService {
         );
     }
 
+    private Wallet processDeposit(Wallet wallet, BigDecimal amount) {
+        wallet.setBalance(wallet.getBalance().add(amount));
+        return walletRepository.save(wallet);
+    }
+
     @Override
     @Transactional
     public TransactionResponse withdraw(Long walletId, TransactionRequest request) {
@@ -97,14 +101,7 @@ public class WalletServiceImpl implements WalletService {
 
         BigDecimal previousBalance = wallet.getBalance();
 
-        if (wallet.getBalance().compareTo(amount) < 0) {
-            throw new InsufficientFundsException(
-                    "Insufficient funds. Current balance: %s , Withdrawal amount : %s".formatted(wallet.getBalance(), amount)
-            );
-        }
-
-        wallet.setBalance(wallet.getBalance().subtract(amount));
-        walletRepository.save(wallet);
+        wallet = processWithdraw(wallet, amount);
 
         return new TransactionResponse(
                 walletId,
@@ -114,6 +111,18 @@ public class WalletServiceImpl implements WalletService {
                 TransactionType.WITHDRAWAL,
                 amount
         );
+    }
+
+    private Wallet processWithdraw(Wallet wallet, BigDecimal amount) {
+
+        if (wallet.getBalance().compareTo(amount) < 0) {
+            throw new InsufficientFundsException(
+                    "Insufficient funds. Current balance: %s , Withdrawal amount : %s".formatted(wallet.getBalance(), amount)
+            );
+        }
+
+        wallet.setBalance(wallet.getBalance().subtract(amount));
+        return walletRepository.save(wallet);
     }
 
     private void checkIfWalletNameExists(String walletName, String currentUsername) {
