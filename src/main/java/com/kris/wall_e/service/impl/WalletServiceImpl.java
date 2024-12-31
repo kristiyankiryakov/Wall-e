@@ -5,6 +5,7 @@ import com.kris.wall_e.dto.WalletResponse;
 import com.kris.wall_e.entity.User;
 import com.kris.wall_e.entity.Wallet;
 import com.kris.wall_e.exception.AlreadyExistsException;
+import com.kris.wall_e.exception.NotFoundException;
 import com.kris.wall_e.repository.WalletRepository;
 import com.kris.wall_e.service.WalletService;
 import lombok.RequiredArgsConstructor;
@@ -18,34 +19,49 @@ public class WalletServiceImpl implements WalletService {
     private final UserServiceImpl userService;
     private final UserIdentityService userIdentityService;
 
+    @Override
     public WalletResponse createWallet(WalletRequest request) {
 
         String username = userIdentityService.getAuthenticatedUsername();
 
-        User user = userService.getUserByUsername(username);
+        User owner = userService.getUserByUsername(username);
 
         checkIfWalletNameExists(request.walletName(), username);
 
         Wallet wallet = new Wallet();
-        wallet.setUser(user);
+        wallet.setOwner(owner);
         wallet.setName(request.walletName());
 
         walletRepository.save(wallet);
 
         return new WalletResponse(
+                wallet.getId(),
                 wallet.getName(),
-                user.getUsername(),
+                username,
                 wallet.getBalance()
         );
 
     }
 
-//    public WalletResponse getWallet(Long walletId) {
-//
-//
-//
-//    }
-//
+    //Check if wallet exists
+    //Check if the user sending the request is the owner of the wallet
+
+    @Override
+    public WalletResponse viewBalance(Long walletId) {
+
+        String username = userIdentityService.getAuthenticatedUsername();
+
+        Wallet wallet = getWalletByIdAndUsername(walletId, username);
+
+        return new WalletResponse(
+                wallet.getId(),
+                wallet.getName(),
+                username,
+                wallet.getBalance()
+        );
+
+    }
+
 //    @Override
 //    @Transactional
 //    public TransactionResponse deposit(Long userId, TransactionRequest request) {
@@ -101,9 +117,14 @@ public class WalletServiceImpl implements WalletService {
 //    }
 
     private void checkIfWalletNameExists(String walletName, String currentUsername) {
-        if (walletRepository.existsByNameAndUserUsername(walletName, currentUsername)) {
+        if (walletRepository.existsByNameAndOwnerUsername(walletName, currentUsername)) {
             throw new AlreadyExistsException("Wallet with name %s already exists.".formatted(walletName));
         }
+    }
+
+    private Wallet getWalletByIdAndUsername(Long walletId, String username) throws NotFoundException {
+        return walletRepository.findByIdAndOwnerUsername(walletId, username)
+                .orElseThrow(() -> new NotFoundException("Wallet not found or access denied"));
     }
 
 

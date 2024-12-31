@@ -20,10 +20,10 @@ public class WalletController {
         return ResponseEntity.ok(walletService.createWallet(request));
     }
 
-//    @GetMapping("/{walletId}")
-//    public ResponseEntity<WalletResponse> viewBalance(@PathVariable("walletId") Long walletId) {
-//        return ResponseEntity.ok(walletService.getWallet(walletId));
-//    }
+    @GetMapping("/{walletId}")
+    public ResponseEntity<WalletResponse> viewBalance(@PathVariable("walletId") Long walletId) {
+        return ResponseEntity.ok(walletService.viewBalance(walletId));
+    }
 
 //    @PutMapping("/deposit/{userId}")
 //    public ResponseEntity<TransactionResponse> deposit(@PathVariable("userId") Long userId, @Validated @RequestBody TransactionRequest request) {

@@ -27,6 +27,6 @@ public class Wallet extends BaseEntity {
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "owner_id", nullable = false) // Links to User's id column
+    private User owner;
 }

@@ -10,7 +10,7 @@ public interface WalletService {
 
     public WalletResponse createWallet(WalletRequest request);
 
-//    public WalletResponse getWallet(Long walletId);
+    public WalletResponse viewBalance(Long walletId);
 //
 //    public TransactionResponse deposit(Long userId, TransactionRequest transactionRequest);
 //

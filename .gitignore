@@ -1,2 +1,10 @@
-/target/
+# Environment files
 .env
+local.env
+dev.env
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
