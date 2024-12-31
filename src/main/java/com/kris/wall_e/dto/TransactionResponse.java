@@ -1,6 +1,6 @@
 package com.kris.wall_e.dto;
 
-import com.kris.wall_e.entity.TransactionType;
+import com.kris.wall_e.enums.TransactionType;
 
 import java.math.BigDecimal;
 

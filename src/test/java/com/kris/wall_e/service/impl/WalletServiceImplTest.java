@@ -3,7 +3,7 @@
 //import com.kris.wall_e.dto.TransactionRequest;
 //import com.kris.wall_e.dto.TransactionResponse;
 //import com.kris.wall_e.dto.WalletResponse;
-//import com.kris.wall_e.entity.TransactionType;
+//import com.kris.wall_e.enums.TransactionType;
 //import com.kris.wall_e.entity.User;
 //import com.kris.wall_e.entity.Wallet;
 //import com.kris.wall_e.exception.AlreadyExistsException;

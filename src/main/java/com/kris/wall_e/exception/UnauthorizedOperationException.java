@@ -1,11 +1,10 @@
 package com.kris.wall_e.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import com.kris.wall_e.enums.ErrorCode;
 
-@ResponseStatus(HttpStatus.UNAUTHORIZED)
-public class UnauthorizedOperationException extends BaseException {
+
+public class UnauthorizedOperationException extends BaseBusinessException {
     public UnauthorizedOperationException(String message) {
-        super(message);
+        super(ErrorCode.UNAUTHORIZED_OPERATION, message);
     }
 }

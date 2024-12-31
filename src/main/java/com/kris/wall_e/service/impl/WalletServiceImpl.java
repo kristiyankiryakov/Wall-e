@@ -5,7 +5,7 @@ import com.kris.wall_e.dto.WalletResponse;
 import com.kris.wall_e.entity.User;
 import com.kris.wall_e.entity.Wallet;
 import com.kris.wall_e.exception.AlreadyExistsException;
-import com.kris.wall_e.exception.NotFoundException;
+import com.kris.wall_e.exception.ResourceNotFoundException;
 import com.kris.wall_e.repository.WalletRepository;
 import com.kris.wall_e.service.WalletService;
 import lombok.RequiredArgsConstructor;
@@ -122,9 +122,9 @@ public class WalletServiceImpl implements WalletService {
         }
     }
 
-    private Wallet getWalletByIdAndUsername(Long walletId, String username) throws NotFoundException {
+    private Wallet getWalletByIdAndUsername(Long walletId, String username) throws ResourceNotFoundException {
         return walletRepository.findByIdAndOwnerUsername(walletId, username)
-                .orElseThrow(() -> new NotFoundException("Wallet not found or access denied"));
+                .orElseThrow(() -> new ResourceNotFoundException("Wallet not found or access denied"));
     }
 
 

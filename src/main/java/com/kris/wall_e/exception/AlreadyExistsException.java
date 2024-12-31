@@ -1,13 +1,9 @@
 package com.kris.wall_e.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import com.kris.wall_e.enums.ErrorCode;
 
-@ResponseStatus(HttpStatus.CONFLICT)
-public class AlreadyExistsException extends BaseException {
-
-    public AlreadyExistsException(String message){
-        super(message);
+public class AlreadyExistsException extends BaseBusinessException {
+    public AlreadyExistsException(String message) {
+        super(ErrorCode.ALREADY_EXISTS, message);
     }
-
 }

@@ -1,11 +1,9 @@
 package com.kris.wall_e.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import com.kris.wall_e.enums.ErrorCode;
 
-@ResponseStatus(HttpStatus.UNAUTHORIZED)
-public class InvalidCredentialsException extends RuntimeException {
+public class InvalidCredentialsException extends BaseBusinessException {
     public InvalidCredentialsException(String message) {
-        super(message);
+        super(ErrorCode.INVALID_CREDENTIALS, message);
     }
 }

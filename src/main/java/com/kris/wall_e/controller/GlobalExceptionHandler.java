@@ -1,13 +1,16 @@
 package com.kris.wall_e.controller;
 
-import com.kris.wall_e.exception.BaseException;
-import com.kris.wall_e.exception.ErrorResponse;
+import com.kris.wall_e.enums.ErrorCode;
+import com.kris.wall_e.exception.BaseBusinessException;
+import com.kris.wall_e.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
 
@@ -25,31 +28,31 @@ public class GlobalExceptionHandler {
         }
 
         ErrorResponse errorResponse = new ErrorResponse(
-                400,
-                "Validation failed: " + errors.toString(),
-                LocalDateTime.now()
+                "Validation failed: " + errors.toString()
         );
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(BaseException.class)
-    public ResponseEntity<ErrorResponse> handleBaseException(BaseException ex) {
+
+    @ExceptionHandler(BaseBusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBaseBusinessException(
+            BaseBusinessException ex,
+            WebRequest request) {
+
         ErrorResponse errorResponse = new ErrorResponse(
-                404,
                 ex.getMessage(),
-                LocalDateTime.now()
+                ex.getErrorCode(),
+                ((ServletWebRequest) request).getRequest().getRequestURI()
         );
 
-        return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, ex.getErrorCode().getStatus());
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception ex) {
         ErrorResponse errorResponse = new ErrorResponse(
-                500,
-                "An unexpected error occurred: " + ex.getMessage(),
-                LocalDateTime.now()
+                "An unexpected error occurred: " + ex.getMessage()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }

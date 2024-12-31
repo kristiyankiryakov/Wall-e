@@ -1,7 +1,9 @@
 package com.kris.wall_e.exception;
 
-public class InsufficientFundsException extends BaseException {
+import com.kris.wall_e.enums.ErrorCode;
+
+public class InsufficientFundsException extends BaseBusinessException {
     public InsufficientFundsException(String message) {
-        super(message);
+        super(ErrorCode.INSUFFICIENT_FUNDS, message);
     }
 }

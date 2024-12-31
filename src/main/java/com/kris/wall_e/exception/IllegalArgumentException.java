@@ -1,7 +1,9 @@
 package com.kris.wall_e.exception;
 
-public class IllegalArgumentException extends BaseException {
+import com.kris.wall_e.enums.ErrorCode;
+
+public class IllegalArgumentException extends BaseBusinessException {
     public IllegalArgumentException(String message) {
-        super(message);
+        super(ErrorCode.ILLEGAL_ARGUMENT, message);
     }
 }
