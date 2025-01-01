@@ -4,7 +4,6 @@ import com.kris.wall_e.dto.TransactionRequest;
 import com.kris.wall_e.dto.TransactionResponse;
 import com.kris.wall_e.dto.WalletRequest;
 import com.kris.wall_e.dto.WalletResponse;
-import jakarta.servlet.http.HttpServletRequest;
 
 public interface WalletService {
 

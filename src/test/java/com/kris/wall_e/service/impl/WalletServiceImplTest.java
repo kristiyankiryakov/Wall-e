@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -73,7 +74,7 @@ class WalletServiceImplTest {
         when(walletRepository.existsByNameAndOwnerUsername(WALLET_NAME, USERNAME))
                 .thenReturn(false);
 
-        when(walletRepository.save(any(Wallet.class))).thenReturn(new Wallet(1L, BigDecimal.ZERO, WALLET_NAME, owner));
+        when(walletRepository.save(any(Wallet.class))).thenReturn(new Wallet(1L, BigDecimal.ZERO, WALLET_NAME, owner, new ArrayList<>()));
 
         WalletResponse response = walletService.createWallet(request);
 
