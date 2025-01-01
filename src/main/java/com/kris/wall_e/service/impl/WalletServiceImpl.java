@@ -10,8 +10,8 @@ import com.kris.wall_e.enums.TransactionType;
 import com.kris.wall_e.exception.AlreadyExistsException;
 import com.kris.wall_e.exception.InsufficientFundsException;
 import com.kris.wall_e.exception.ResourceNotFoundException;
-import com.kris.wall_e.exception.UnauthorizedOperationException;
 import com.kris.wall_e.repository.WalletRepository;
+import com.kris.wall_e.service.UserService;
 import com.kris.wall_e.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ import java.math.BigDecimal;
 public class WalletServiceImpl implements WalletService {
 
     private final WalletRepository walletRepository;
-    private final UserServiceImpl userService;
+    private final UserService userService;
     private final UserIdentityService userIdentityService;
 
     @Override

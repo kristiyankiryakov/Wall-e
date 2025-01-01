@@ -131,6 +131,10 @@
                         -Xshare:off
                         -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/1.14.11/byte-buddy-agent-1.14.11.jar
                     </argLine>
+                    <environmentVariables>
+                        <JWT_SECRET>testSecretKeyForTestingPurposesOnly123456789</JWT_SECRET>
+                        <JWT_EXPIRATION>86400000</JWT_EXPIRATION>
+                    </environmentVariables>
                 </configuration>
             </plugin>
 
