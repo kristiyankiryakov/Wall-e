@@ -5,6 +5,7 @@ dev.env
 
 # IntelliJ IDEA
 .idea/
+target/
 *.iml
 *.ipr
 *.iws
