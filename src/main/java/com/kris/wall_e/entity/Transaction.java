@@ -1,5 +1,6 @@
 package com.kris.wall_e.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.kris.wall_e.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,6 +27,7 @@ public class Transaction extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "wallet_id")
+    @JsonManagedReference
     private Wallet wallet;
 
 }

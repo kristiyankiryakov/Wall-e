@@ -1,5 +1,6 @@
 package com.kris.wall_e.service.impl;
 
+import com.kris.wall_e.dto.TransactionDto;
 import com.kris.wall_e.dto.TransactionHistoryRequest;
 import com.kris.wall_e.entity.Transaction;
 import com.kris.wall_e.entity.Wallet;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +35,21 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<Transaction> getTransactionsForWallet(Long walletId) {
-        return transactionRepository.findByWalletId(walletId);
+    public List<TransactionDto> getTransactionsForWallet(Long walletId) {
+
+        Wallet wallet = walletOperationService.getAuthenticatedUserWallet(walletId);
+
+        List<Transaction> transactions = wallet.getTransactions();
+
+        return transactions.stream()
+                .map(transaction -> new TransactionDto(
+                        transaction.getId(),
+                        transaction.getAmount(),
+                        transaction.getType(),
+                        transaction.getWallet().getId()
+                ))
+                .collect(Collectors.toList());
     }
+
+
 }
