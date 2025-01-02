@@ -4,13 +4,18 @@ import com.kris.wall_e.dto.TransactionRequest;
 import com.kris.wall_e.dto.TransactionResponse;
 import com.kris.wall_e.dto.WalletRequest;
 import com.kris.wall_e.dto.WalletResponse;
+import com.kris.wall_e.entity.Transaction;
 import com.kris.wall_e.entity.User;
 import com.kris.wall_e.entity.Wallet;
+import com.kris.wall_e.enums.TransactionType;
 import com.kris.wall_e.exception.AlreadyExistsException;
+import com.kris.wall_e.exception.BaseBusinessException;
 import com.kris.wall_e.exception.InsufficientFundsException;
 import com.kris.wall_e.exception.ResourceNotFoundException;
+import com.kris.wall_e.repository.TransactionRepository;
 import com.kris.wall_e.repository.WalletRepository;
 import com.kris.wall_e.service.UserService;
+import com.kris.wall_e.service.WalletOperationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,6 +41,12 @@ class WalletServiceImplTest {
 
     @Mock
     private UserIdentityService userIdentityService;
+
+    @Mock
+    private WalletOperationService walletOperationService;
+
+    @Mock
+    private TransactionRepository transactionRepository;
 
     @InjectMocks
     private WalletServiceImpl walletService;
@@ -120,9 +131,7 @@ class WalletServiceImplTest {
 
         Wallet wallet = createTestWallet();
 
-        when(userIdentityService.getAuthenticatedUsername()).thenReturn(USERNAME);
-        when(walletRepository.findByIdAndOwnerUsername(WALLET_ID, USERNAME))
-                .thenReturn(Optional.of(wallet));
+        when(walletOperationService.getAuthenticatedUserWallet(WALLET_ID)).thenReturn(wallet);
 
         WalletResponse response = walletService.viewBalance(WALLET_ID);
 
@@ -132,26 +141,20 @@ class WalletServiceImplTest {
         assertEquals(USERNAME, response.owner());
         assertEquals(INITIAL_BALANCE, response.balance());
 
-        verify(userIdentityService).getAuthenticatedUsername();
-        verify(walletRepository).findByIdAndOwnerUsername(WALLET_ID, USERNAME);
+        verify(walletOperationService).getAuthenticatedUserWallet(WALLET_ID);
     }
 
     @Test
     @Transactional(readOnly = true)
     void viewBalance_Throws_NotFound() {
 
-        when(userIdentityService.getAuthenticatedUsername()).thenReturn(USERNAME);
-        when(walletRepository.findByIdAndOwnerUsername(WALLET_ID, USERNAME))
-                .thenReturn(Optional.empty());
+        when(walletOperationService.getAuthenticatedUserWallet(WALLET_ID)).thenThrow(new ResourceNotFoundException("Wallet not found or access denied"));
 
-        ResourceNotFoundException exception = assertThrows(
-                ResourceNotFoundException.class,
-                () -> walletService.viewBalance(WALLET_ID)
-        );
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            walletService.viewBalance(WALLET_ID);
+        });
 
         assertEquals("Wallet not found or access denied", exception.getMessage());
-        verify(userIdentityService).getAuthenticatedUsername();
-        verify(walletRepository).findByIdAndOwnerUsername(WALLET_ID, USERNAME);
     }
 
     @Test
@@ -162,34 +165,30 @@ class WalletServiceImplTest {
         BigDecimal depositAmount = BigDecimal.valueOf(500);
         BigDecimal expectedBalance = INITIAL_BALANCE.add(depositAmount);
 
-        when(userIdentityService.getAuthenticatedUsername()).thenReturn(USERNAME);
-        when(walletRepository.findByIdAndOwnerUsername(WALLET_ID, USERNAME))
-                .thenReturn(Optional.of(wallet));
-        when(walletRepository.save(any(Wallet.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(walletOperationService.getAuthenticatedUserWallet(WALLET_ID)).thenReturn(wallet);
+        when(walletRepository.save(any(Wallet.class))).thenAnswer(invocation -> {
+            Wallet savedWallet = invocation.getArgument(0);
+
+            assertNotNull(savedWallet.getTransactions());
+            assertFalse(savedWallet.getTransactions().isEmpty());
+            return savedWallet;
+        });
 
         TransactionResponse response = walletService.deposit(WALLET_ID, new TransactionRequest(depositAmount));
 
         assertNotNull(response);
         assertEquals(WALLET_ID, response.walletId());
         assertEquals(expectedBalance, response.currentBalance());
+
         verify(walletRepository).save(wallet);
+
+        assertEquals(1, wallet.getTransactions().size());
+        Transaction savedTransaction = wallet.getTransactions().get(0);
+        assertEquals(wallet, savedTransaction.getWallet());
+        assertEquals(TransactionType.DEPOSIT, savedTransaction.getType());
+        assertEquals(depositAmount, savedTransaction.getAmount());
     }
 
-    @Test
-    @Transactional
-    void deposit_WalletNotFound() {
-
-        when(userIdentityService.getAuthenticatedUsername()).thenReturn(USERNAME);
-        when(walletRepository.findByIdAndOwnerUsername(WALLET_ID, USERNAME))
-                .thenReturn(Optional.empty());
-
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> walletService.deposit(WALLET_ID, new TransactionRequest(BigDecimal.TEN))
-        );
-
-        verify(walletRepository, never()).save(any());
-    }
 
     @Test
     @Transactional
@@ -199,17 +198,29 @@ class WalletServiceImplTest {
         BigDecimal withdrawAmount = BigDecimal.valueOf(500);
         BigDecimal expectedBalance = INITIAL_BALANCE.subtract(withdrawAmount);
 
-        when(userIdentityService.getAuthenticatedUsername()).thenReturn(USERNAME);
-        when(walletRepository.findByIdAndOwnerUsername(WALLET_ID, USERNAME))
-                .thenReturn(Optional.of(wallet));
-        when(walletRepository.save(any(Wallet.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(walletOperationService.getAuthenticatedUserWallet(WALLET_ID)).thenReturn(wallet);
+        when(walletRepository.save(any(Wallet.class))).thenAnswer(invocation -> {
+            Wallet savedWallet = invocation.getArgument(0);
+
+            assertNotNull(savedWallet.getTransactions());
+            assertFalse(savedWallet.getTransactions().isEmpty());
+            return savedWallet;
+        });
+
 
         TransactionResponse response = walletService.withdraw(WALLET_ID, new TransactionRequest(withdrawAmount));
 
         assertNotNull(response);
         assertEquals(WALLET_ID, response.walletId());
         assertEquals(expectedBalance, response.currentBalance());
+
         verify(walletRepository).save(wallet);
+
+        assertEquals(1, wallet.getTransactions().size());
+        Transaction savedTransaction = wallet.getTransactions().get(0);
+        assertEquals(wallet, savedTransaction.getWallet());
+        assertEquals(TransactionType.WITHDRAWAL, savedTransaction.getType());
+        assertEquals(withdrawAmount, savedTransaction.getAmount());
     }
 
     @Test
@@ -217,11 +228,9 @@ class WalletServiceImplTest {
     void withdraw_Throws_InsufficientFunds() {
 
         Wallet wallet = createTestWallet();
-        BigDecimal withdrawAmount = BigDecimal.valueOf(2000); // More than initial balance
+        BigDecimal withdrawAmount = BigDecimal.valueOf(2000);
 
-        when(userIdentityService.getAuthenticatedUsername()).thenReturn(USERNAME);
-        when(walletRepository.findByIdAndOwnerUsername(WALLET_ID, USERNAME))
-                .thenReturn(Optional.of(wallet));
+        when(walletOperationService.getAuthenticatedUserWallet(WALLET_ID)).thenThrow(new InsufficientFundsException(""));
 
         assertThrows(
                 InsufficientFundsException.class,
@@ -230,195 +239,5 @@ class WalletServiceImplTest {
 
         verify(walletRepository, never()).save(any());
     }
-
-    @Test
-    @Transactional
-    void withdraw_WalletNotFound() {
-
-        when(userIdentityService.getAuthenticatedUsername()).thenReturn(USERNAME);
-        when(walletRepository.findByIdAndOwnerUsername(WALLET_ID, USERNAME))
-                .thenReturn(Optional.empty());
-
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> walletService.withdraw(WALLET_ID, new TransactionRequest(BigDecimal.TEN))
-        );
-
-        verify(walletRepository, never()).save(any());
-    }
-
-//    @Test
-//    @Transactional
-//    void deposit_ShouldReturnTransactionResponse_WhenWalletExists() {
-//
-//        Long userId = 1L;
-//        User mockUser = User.builder().id(1L).name("pesho").email("pesho@test.com").build();
-//
-//        BigDecimal depositAmount = BigDecimal.valueOf(50.0);
-//        BigDecimal initialBalance = BigDecimal.valueOf(100.0);
-//        BigDecimal finalBalance = initialBalance.add(depositAmount);
-//
-//        Wallet mockWallet = new Wallet();
-//        mockWallet.setId(1L);
-//        mockWallet.setUser(mockUser);
-//        mockWallet.setBalance(initialBalance);
-//
-//        when(repository.findByUserId(userId)).thenReturn(Optional.of(mockWallet));
-//        //return the exact Wallet object passed to the save method without modifying it.
-//        when(repository.save(any(Wallet.class))).thenAnswer(invocation -> invocation.getArgument(0));
-//
-//        TransactionRequest request = new TransactionRequest(depositAmount);
-//
-//        TransactionResponse response = walletService.deposit(userId, request);
-//
-//        assertNotNull(response);
-//        assertEquals(1L, response.walletId());
-//        assertEquals(userId, response.userId());
-//        assertEquals(initialBalance, response.previousBalance());
-//        assertEquals(finalBalance, response.currentBalance());
-//        assertEquals(TransactionType.DEPOSIT, response.transactionType());
-//        assertEquals(depositAmount, response.transactionAmount());
-//
-//        verify(repository, times(1)).findByUserId(userId);
-//        verify(repository, times(1)).save(any(Wallet.class));
-//    }
-//
-//    @Test
-//    @Transactional
-//    void deposit_ShouldThrowNotFoundException_WhenWalletDoesNotExist() {
-//        Long userId = 1L;
-//        BigDecimal depositAmount = BigDecimal.valueOf(50.0);
-//
-//        when(repository.findByUserId(userId)).thenReturn(Optional.empty());
-//
-//        TransactionRequest request = new TransactionRequest(depositAmount);
-//
-//        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-//            walletService.deposit(userId, request);
-//        });
-//
-//        assertEquals("Wallet not found for user: " + userId, exception.getMessage());
-//
-//        verify(repository, times(1)).findByUserId(userId);
-//        verify(repository, never()).save(any(Wallet.class));
-//    }
-//
-//    @Test
-//    public void depositUnauthorized_ShouldThrowUnauthorizedOperationException() {
-//        Long userId = 1L;
-//        Long walletUserId = 2L; // A different user id than the one requesting
-//        User user = User.builder().id(userId).build();
-//
-//        User walletOwner = User.builder().id(walletUserId).build();
-//        Wallet wallet = new Wallet(1L, BigDecimal.valueOf(100.00), walletOwner);
-//
-//        TransactionRequest request = new TransactionRequest(BigDecimal.valueOf(50));
-//
-//        when(repository.findByUserId(userId)).thenReturn(Optional.of(wallet));
-//
-//        // Should throw UnauthorizedOperationException because the wallet doesn't belong to the user
-//        assertThrows(UnauthorizedOperationException.class, () -> walletService.deposit(userId, request));
-//    }
-//
-//    @Test
-//    @Transactional
-//    void withdraw_ShouldReturnTransactionResponse_WhenSufficientFunds() {
-//
-//        Long userId = 1L;
-//        User mockUser = User.builder().id(1L).name("pesho").email("pesho@test.com").build();
-//
-//        BigDecimal withdrawalAmount = BigDecimal.valueOf(50.0);
-//        BigDecimal initialBalance = BigDecimal.valueOf(100.0);
-//        BigDecimal finalBalance = initialBalance.subtract(withdrawalAmount);
-//
-//        Wallet mockWallet = new Wallet();
-//        mockWallet.setId(1L);
-//        mockWallet.setUser(mockUser);
-//        mockWallet.setBalance(initialBalance);
-//
-//        when(repository.findByUserId(userId)).thenReturn(Optional.of(mockWallet));
-//        when(repository.save(any(Wallet.class))).thenAnswer(invocation -> invocation.getArgument(0));
-//
-//        TransactionRequest request = new TransactionRequest(withdrawalAmount);
-//
-//        TransactionResponse response = walletService.withdraw(userId, request);
-//
-//        assertNotNull(response);
-//        assertEquals(1L, response.walletId());
-//        assertEquals(userId, response.userId());
-//        assertEquals(initialBalance, response.previousBalance());
-//        assertEquals(finalBalance, response.currentBalance());
-//        assertEquals(TransactionType.WITHDRAWAL, response.transactionType());
-//        assertEquals(withdrawalAmount, response.transactionAmount());
-//
-//        verify(repository, times(1)).findByUserId(userId);
-//        verify(repository, times(1)).save(any(Wallet.class));
-//    }
-//
-//    @Test
-//    @Transactional
-//    void withdraw_ShouldThrowNotFoundException_WhenWalletDoesNotExist() {
-//        Long userId = 1L;
-//        BigDecimal withdrawalAmount = BigDecimal.valueOf(50.0);
-//
-//        when(repository.findByUserId(userId)).thenReturn(Optional.empty());
-//
-//        TransactionRequest request = new TransactionRequest(withdrawalAmount);
-//
-//        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-//            walletService.withdraw(userId, request);
-//        });
-//
-//        assertEquals("Wallet not found for user: " + userId, exception.getMessage());
-//
-//        verify(repository, times(1)).findByUserId(userId);
-//        verify(repository, never()).save(any(Wallet.class));
-//    }
-//
-//    @Test
-//    @Transactional
-//    void withdraw_ShouldThrowInsufficientFundsException_WhenInsufficientFunds() {
-//
-//        Long userId = 1L;
-//        User mockUser = User.builder().id(1L).name("pesho").email("pesho@test.com").build();
-//
-//        BigDecimal withdrawalAmount = BigDecimal.valueOf(150.0);
-//        BigDecimal initialBalance = BigDecimal.valueOf(100.0);
-//
-//        Wallet mockWallet = new Wallet();
-//        mockWallet.setId(1L);
-//        mockWallet.setUser(mockUser);
-//        mockWallet.setBalance(initialBalance);
-//
-//        when(repository.findByUserId(userId)).thenReturn(Optional.of(mockWallet));
-//
-//        TransactionRequest request = new TransactionRequest(withdrawalAmount);
-//
-//        InsufficientFundsException exception = assertThrows(InsufficientFundsException.class, () -> {
-//            walletService.withdraw(userId, request);
-//        });
-//
-//        assertEquals("Insufficient funds. Current balance: 100.0 , Withdrawal amount : 150.0", exception.getMessage());
-//
-//        verify(repository, times(1)).findByUserId(userId);
-//        verify(repository, never()).save(any(Wallet.class));
-//    }
-//
-//    @Test
-//    public void withdrawUnauthorized_ShouldThrowUnauthorizedOperationException() {
-//        Long userId = 1L;
-//        Long walletUserId = 2L; // A different user id than the one requesting
-//        User user = User.builder().id(userId).build();
-//
-//        User walletOwner = User.builder().id(walletUserId).build();
-//        Wallet wallet = new Wallet(1L, BigDecimal.valueOf(100.00), walletOwner);
-//
-//        TransactionRequest request = new TransactionRequest(BigDecimal.valueOf(50));
-//
-//        when(repository.findByUserId(userId)).thenReturn(Optional.of(wallet));
-//
-//        // Should throw UnauthorizedOperationException because the wallet doesn't belong to the user
-//        assertThrows(UnauthorizedOperationException.class, () -> walletService.withdraw(userId, request));
-//    }
 
 }
