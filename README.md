@@ -50,21 +50,16 @@ This will start a PostgreSQL instance with the following configuration:
 
 ### 3. Configure Application
 
-The application is configured using `application.yml`. The default configuration is:
+The application uses profile-specific YAML configuration:
 
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
-    password: postgres
-  jpa:
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-```
+- `application.yml`: Contains the base configuration and production settings
+- `application-dev.yml`: Contains development-specific settings with default JWT values
+
+The development profile is activated by default for ease of testing.
+
+For production deployments, ensure you provide the actual JWT configuration through environment variables:
+- JWT_SECRET
+- JWT_EXPIRATION
 
 ### 4. Build and Run
 

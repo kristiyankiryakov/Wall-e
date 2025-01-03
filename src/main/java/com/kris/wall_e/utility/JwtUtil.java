@@ -13,10 +13,10 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    @Value("${JWT_SECRET}")
+    @Value("${spring.datasource.jwt.secret}")
     private String secret;
 
-    @Value("${JWT_EXPIRATION}") // 24 hours
+    @Value("${spring.datasource.jwt.expiration}") // 24 hours
     private long expiration;
 
     public String generateToken(String username) {
