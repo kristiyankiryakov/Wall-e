@@ -1,12 +1,10 @@
 # Wallet API
 
-![img_1.png](img_1.png)
-
 A Spring Boot REST API that enables user management and wallet operations including creating users, managing wallets, and handling deposits/withdrawals.
 
 ### API Design Notes
 
-- **User-Wallet Relationship**: There's a one-to-one relationship between users and wallets. Each user has exactly one wallet, and each wallet is associated with only one user. This relationship is implicit in API endpoints where operations are performed using the `userId`.
+- **User-Wallet Relationship**: There's a one-to-many relationship between users and wallets.
 
 
 ## Technologies Used
@@ -86,52 +84,83 @@ The API will be available at `http://localhost:8080`
 
 ## API Endpoints
 
-### Users
+### Authentication
 
-#### Create User
-- **POST** `/api/users`
+#### Register
+- **POST** `/api/auth/register`
 - Creates a new user account
-- Request Body (`UserDto`):
+- Request Body (`AuthRequest`):
   ```json
   {
-    "name": "string",         // Required
-    "email": "string",        // Required, must be valid email
+    "username": "string",     // Required
+    "password": "string"      // Required, minimal length = 6
+  }
+  ```
+- Response (`AuthResponse`):
+  ```json
+  {
+    "token": "string"
+  }
+  ```
+
+#### Login
+- **POST** `/api/auth/login`
+- Authenticates user
+- Request Body (`AuthRequest`):
+  ```json
+  {
+    "username": "string",     // Required
     "password": "string"      // Required
   }
   ```
-- Response (`UserResponseDto`):
+- Response (`AuthResponse`):
   ```json
   {
-    "userId": "number",
-    "name": "string",
-    "email": "string"
+    "token": "string"
   }
   ```
 
 ### Wallets
 
 #### Create Wallet
-- **POST** `/api/wallets/{userId}`
+- **POST** `/api/wallets`
 - Creates a new wallet for a user
-- Path Variables:
-  - `userId`: The ID of the user
+- Request Body(`WalletRequest`)
+  ```json
+  {
+  "walletName": "string"     // Required
+  }
+    ```
 - Response (`WalletResponse`):
   ```json
   {
-    "userDetails": {
-      "userId": "number",
-      "name": "string",
-      "email": "string"
-    },
+    "id" : "number",
+    "name": "string",        
+    "owner": "string",       // Username of the owner
+    "balance": "number"
+  }
+  ```
+
+#### View Balance
+- **GET** `/api/wallets/{walletId}`
+- Retrieves the current wallet
+- Path Variables:
+  - `walletId`: The ID of the wallet
+- Response (`WalletResponse`):
+  ```json
+  {
+    "id" : "number",
+    "name": "string",        
+    "owner": "string",       // Username of the owner
     "balance": "number"
   }
   ```
 
 #### Deposit Money
-- **PUT** `/api/wallets/deposit/{userId}`
+- **PUT** `/api/wallets/{walletId}/deposit`
 - Adds funds to a wallet
 - Path Variables:
-  - `userId`: The ID of the user
+  - `walletId`: The ID of the wallet
 - Request Body (`TransactionRequest`):
   ```json
   {
@@ -151,10 +180,10 @@ The API will be available at `http://localhost:8080`
   ```
 
 #### Withdraw Money
-- **PUT** `/api/wallets/withdraw/{userId}`
+- **PUT** `/api/wallets/{walletId}/withdraw`
 - Withdraws funds from a wallet
 - Path Variables:
-  - `userId`: The ID of the user
+  - `walletId`: The ID of the wallet
 - Request Body (`TransactionRequest`):
   ```json
   {
@@ -173,20 +202,20 @@ The API will be available at `http://localhost:8080`
   }
   ```
 
-#### View Balance
-- **GET** `/api/wallets/{userId}`
-- Retrieves the current wallet balance
+### Transaction History
+
+#### View transactions of a wallet
+- **GET** `/api/transactions/{walletId}`
+- Retrieves the transactions of a wallet
 - Path Variables:
-  - `userId`: The ID of the user
-- Response (`WalletResponse`):
+- `walletId`: The ID of the wallet
+- Response (`List<TransactionDto>`):
   ```json
   {
-    "userDetails": {
-      "userId": "number",
-      "name": "string",
-      "email": "string"
-    },
-    "balance": "number"
+    "id" : "number",
+    "amount": "number",        
+    "type": "string",     
+    "walletId": "number"
   }
   ```
 
@@ -206,13 +235,24 @@ You can use tools like Postman or curl to test the API endpoints. Here's an exam
 
 ```bash
 # Create a new user
-curl -X POST http://localhost:8080/api/users \
+curl -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"name": "John Doe", "email": "john@example.com", "password": "john123"}'
-
+  -d '{"username": "John_Doe", "password": "john123"}'
 ```
 
-[Previous sections remain the same until Contributing...]
+### Authentication Required Routes
+
+The following endpoints require authentication via Bearer token in the Authorization header:
+
+```bash
+# Wallet endpoints
+curl -X GET http://localhost:8080/api/wallets \
+  -H "Authorization: Bearer your_jwt_token_here"
+
+# Transaction endpoints
+curl -X GET http://localhost:8080/api/transactions \
+  -H "Authorization: Bearer your_jwt_token_here"
+```
 
 ## CI/CD Pipeline
 
